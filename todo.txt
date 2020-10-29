@@ -1,0 +1,14 @@
+figure out a way to get average center of movement
+hook that up to the color of the ball
+take dead ball apart
+see if can find out the name of the battery that is used
+make location based color change
+make audio based color changes
+make event based color changes
+make consistency based color changes
+
+
+
+skilldex playlists
+playlists to ankidecks
+	name, info, video url, skilldex url, see if can inbed video if user is connected
