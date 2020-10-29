@@ -1,58 +1,65 @@
+# import cv2 as cv
+# import numpy as np
+# cap = cv.VideoCapture(0)
+# while(1):
+#     # Take each frame
+#     _, frame = cap.read()
+#     # Convert BGR to HSV
+#     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+#     # define range of blue color in HSV
+#     lower_blue = np.array([110,50,50])
+#     upper_blue = np.array([130,255,255])
+#     # Threshold the HSV image to get only blue colors
+#     mask = cv.inRange(hsv, lower_blue, upper_blue)
+#     # Bitwise-AND mask and original image
+#     res = cv.bitwise_and(frame,frame, mask= mask)
+#     cv.imshow('frame',frame)
+#     cv.imshow('mask',mask)
+#     cv.imshow('res',res)
+#     k = cv.waitKey(5) & 0xFF
+#     if k == 27:
+#         break
+# cv.destroyAllWindows()
 
-# cap = cv2.VideoCapture(0)
-# ret, current_frame = cap.read()
-# previous_frame = current_frame
+import cv2
 
 
 import numpy as np
-import cv2
-from skimage import data, filters
 
-# Open Video
+
+
 cap = cv2.VideoCapture(0)
+ret, current_frame = cap.read()
+previous_frame = current_frame
 
-# Randomly select 25 frames
-frameIds = cap.get(cv2.CAP_PROP_FRAME_COUNT) * np.random.uniform(size=25)
+while(cap.isOpened()):
+	current_frame_gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
+	previous_frame_gray = cv2.cvtColor(previous_frame, cv2.COLOR_BGR2GRAY)    
 
-# Store selected frames in an array
-frames = []
-for fid in frameIds:
-    cap.set(cv2.CAP_PROP_POS_FRAMES, fid)
-    ret, frame = cap.read()
-    frames.append(frame)
+	frame_diff = cv2.absdiff(current_frame_gray,previous_frame_gray)
 
-# Calculate the median along the time axis
-medianFrame = np.median(frames, axis=0).astype(dtype=np.uint8)    
+	print(np.mean(frame_diff))
 
-# Display median frame
-cv2.imshow('frame', medianFrame)
-cv2.waitKey(0)
-# Reset frame number to 0
-cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+	kernel = np.ones((5,5),np.uint8)
+	close_operated_image = cv2.morphologyEx(frame_diff, cv2.MORPH_CLOSE, kernel)
+	_, thresholded = cv2.threshold(close_operated_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-# Convert background to grayscale
-grayMedianFrame = cv2.cvtColor(medianFrame, cv2.COLOR_BGR2GRAY)
+	median = cv2.medianBlur(thresholded, 5)
 
-# Loop over all frames
-ret = True
-while(ret):
 
-  # Read frame
-  ret, frame = cap.read()
-  # Convert current frame to grayscale
-  frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-  # Calculate absolute difference of current frame and 
-  # the median frame
-  dframe = cv2.absdiff(frame, grayMedianFrame)
-  # Treshold to binarize
-  th, dframe = cv2.threshold(dframe, 30, 255, cv2.THRESH_BINARY)
-  # Display image
-  cv2.imshow('frame', dframe)
-  cv2.waitKey(0)
+	cv2.imshow('frame diff ',median)
+	key = cv2.waitKey(0) & 0xFF
+	key = cv2.waitKey(1) & 0xFF
+	if key == ord('n'):
+		print('new')   
+	if key == ord('q'):
+		break
 
-# Release video object
+	previous_frame = current_frame.copy()
+	ret, current_frame = cap.read()
+
 cap.release()
-
-# Destroy all windows
 cv2.destroyAllWindows()
+
+
 
